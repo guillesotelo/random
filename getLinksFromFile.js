@@ -10,7 +10,7 @@ const readline = require('readline');
 const folderPath = process.argv[2]
 const linksTxt = process.argv[3]
 
-console.log('Reading files...')
+console.log('Reading file...')
 
 const findMarkdownFiles = (dirPath, fileList) => {
     const files = fs.readdirSync(dirPath)
@@ -91,7 +91,7 @@ const findLocalPathToLinks = () => {
 }
 
 const writeLinkList = () => {
-    const listTitle = `Links found in ${folderPath}\n\n`
+    const listTitle = `Links found in ${linksTxt}\n\n`
     fs.writeFileSync(path.join(folderPath, 'link-list2.txt'), listTitle + parsedLinks.map(({ path, newPath, link }) =>
         `${path}\n${link}\n${newPath}\n`
     ).join('\n'))
