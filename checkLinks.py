@@ -20,10 +20,6 @@ c_warning = '\033[93m'
 c_pink = '\033[95m'
 
 path_to_json = sys.argv[1]
-path_to_new_file = os.path.join(os.path.dirname(__file__), 'all_links.json')
-
-if len(sys.argv) >= 3:
-    path_to_new_file = sys.argv[2]
 
 oauth2 = OAuth2Session(client_id, token={'access_token': access_token})
 
@@ -52,7 +48,7 @@ for index, item in enumerate(json_list):
 
         try:
             print(
-                c_pink + f'Checking links... ({index}/{len(json_list)}) [{loading[pos]}]' + c_default, end='\r')
+                f'Checking links... ({index}/{len(json_list)}) [{loading[pos]}]' + c_default, end='\r')
             if pos == 3:
                 pos = 0
             else:
@@ -64,9 +60,22 @@ for index, item in enumerate(json_list):
                 links.append({'url': url, 'info': 'working'})
                 working.append(url)
             else:
-                links.append({'url': url, 'info': 'broken'})
-                broken.append(url)
-
+                try:
+                    response = oauth2.get(url, verify=False)
+                    if response.status_code == requests.codes.ok:
+                        links.append({'url': url, 'info': 'working'})
+                        working.append(url)
+                    else:
+                        if response.status_code == 404:
+                            links.append({'url': url, 'info': 'broken'})
+                            broken.append(url)
+                        if response.status_code == 401:
+                            print(c_warning + f'Unauthorized URL: {url}' + c_default)
+                            links.append({'url': url, 'info': 'Unauthorized'})
+                            oauth2_error.append(url)
+                except:
+                    links.append({'url': url, 'info': 'broken'})
+                    broken.append(url)
         except:
             try:
                 response = oauth2.get(url, verify=False)
@@ -98,7 +107,7 @@ with open('output/broken.txt', 'w') as f:
     for url in broken:
         f.write(url + '\n')
 
-with open('output/' + path_to_new_file, 'w') as f:
+with open('output/all_links.json', 'w') as f:
     json.dump(links, f)
 
 print('\nDone.')
